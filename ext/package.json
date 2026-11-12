@@ -1,0 +1,118 @@
+{
+  "name": "ife",
+  "displayName": "ife",
+  "publisher": "ife",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "browser": "./extension.js",
+  "activationEvents": [
+    "onFileSystem:ife",
+    "onWebviewPanel:ife.chat",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "views": {
+      "ife": [
+        {
+          "id": "ife.tree",
+          "name": "ife"
+        },
+        {
+          "id": "ife.feed",
+          "name": "%feed%"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "ife.openChat",
+        "title": "%openChat%"
+      },
+      {
+        "command": "ife.back",
+        "title": "%back%"
+      },
+      {
+        "command": "ife.next",
+        "title": "%next%"
+      },
+      {
+        "command": "ife.add",
+        "title": "%add%"
+      },
+      {
+        "command": "ife.replace",
+        "title": "%replace%"
+      },
+      {
+        "command": "ife.model",
+        "title": "%model%"
+      },
+      {
+        "command": "ife.terminal",
+        "title": "%terminal%"
+      },
+      {
+        "command": "ife.refresh",
+        "title": "%refresh%",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ife.newProject",
+        "title": "%newProject%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ife.updateFlow",
+        "title": "%updateFlow%",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "ife.newIteration",
+        "title": "%newIteration%",
+        "icon": "$(add)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ife.newProject",
+          "when": "view == ife.tree",
+          "group": "navigation"
+        },
+        {
+          "command": "ife.refresh",
+          "when": "view == ife.tree",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ife.updateFlow",
+          "when": "view == ife.tree && viewItem == flow",
+          "group": "inline"
+        },
+        {
+          "command": "ife.updateFlow",
+          "when": "view == ife.tree && viewItem == flow"
+        },
+        {
+          "command": "ife.newIteration",
+          "when": "view == ife.tree && viewItem == iterations",
+          "group": "inline"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ife",
+          "title": "ife",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    }
+  }
+}

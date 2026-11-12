@@ -1,0 +1,14 @@
+{
+  "openChat": "ife: open chat",
+  "back": "ife: previous stage",
+  "next": "ife: next stage",
+  "add": "ife: add to artifact",
+  "replace": "ife: replace artifact",
+  "model": "ife: model",
+  "terminal": "ife: terminal",
+  "refresh": "ife: refresh",
+  "newProject": "ife: new project",
+  "updateFlow": "ife: update flow",
+  "feed": "need attention",
+  "newIteration": "ife: new iteration"
+}

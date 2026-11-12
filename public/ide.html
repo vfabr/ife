@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <meta id="ife-workbench" data-settings="__CONFIG__">
+  <link rel="icon" href="/vscode/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/vscode/out/vs/workbench/workbench.web.main.internal.css">
+  <title>ife</title>
+</head>
+<body aria-label=""></body>
+<script>
+  globalThis._VSCODE_FILE_ROOT = new URL("/vscode/out/", window.location.origin).toString();
+</script>
+<script type="module" src="/vscode/out/nls.messages.js"></script>
+<script type="module">
+  import { create, URI } from "/vscode/out/vs/workbench/workbench.web.main.internal.js";
+  const c = JSON.parse(document.getElementById("ife-workbench").dataset.settings);
+  create(document.body, {
+    ...c,
+    additionalBuiltinExtensions: c.additionalBuiltinExtensions.map((u) => URI.revive(u)),
+    workspaceProvider: { workspace: { folderUri: URI.revive(c.folderUri) }, trusted: true, open: async () => false },
+  });
+</script>
+</html>

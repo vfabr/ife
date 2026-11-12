@@ -1,29 +1,26 @@
 name: vscode
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: VS Code version tag
-        required: true
-      exclude:
-        description: built-in extensions to leave out, separated by spaces
-        required: false
-        default: ""
 permissions:
   contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ inputs.version }}
-      EXCLUDE: ${{ inputs.exclude }}
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
       - uses: actions/checkout@v4
         with:
+          path: ife
+      - name: settings
+        run: |
+          echo "VERSION=$(jq -r .vscode.version ife/defaults.json)" >> "$GITHUB_ENV"
+          echo "EXCLUDE=$(jq -r '.vscode.exclude | join(" ")' ife/defaults.json)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        with:
           repository: microsoft/vscode
-          ref: ${{ inputs.version }}
+          ref: ${{ env.VERSION }}
           path: vscode
           fetch-depth: 1
       - uses: actions/setup-node@v4

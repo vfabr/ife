@@ -1,0 +1,274 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-__NONCE__'; connect-src __WS__ __BASE__; img-src __BASE__;">
+<style>
+  html,body{margin:0;height:100%;font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);color:var(--vscode-foreground);background:var(--vscode-editor-background)}
+  #app{display:flex;flex-direction:column;height:100%}
+  #bar{flex:0 0 auto;padding:5px 14px;font-size:12px;color:var(--vscode-descriptionForeground);border-bottom:1px solid var(--vscode-panel-border)}
+  #bar code{font-family:var(--vscode-editor-font-family);cursor:pointer}
+  #bar img{width:14px;height:14px;vertical-align:-3px;margin-right:5px}
+  #bar .model{cursor:pointer;color:var(--vscode-foreground)}
+  #bar .model.off{color:var(--vscode-errorForeground);text-decoration:line-through}
+  #bar .dot{margin-right:6px;color:var(--vscode-testing-iconPassed,var(--vscode-terminal-ansiGreen))}
+  #bar .dot.off{color:var(--vscode-errorForeground)}
+  #log{flex:1;overflow-y:auto;padding:14px 16px}
+  .msg{display:flex;gap:12px;margin:0 0 12px}
+  .who{flex:0 0 120px;font-size:12px;color:var(--vscode-descriptionForeground);text-align:right;padding-top:3px;white-space:nowrap}
+  .who img{width:14px;height:14px;vertical-align:-3px;margin-right:6px}
+  .acts div{font-size:12px;font-family:var(--vscode-editor-font-family);color:var(--vscode-descriptionForeground);opacity:.8;white-space:pre-wrap;overflow-wrap:anywhere}
+  .phase{color:var(--vscode-descriptionForeground);font-style:italic}
+  .text.md{white-space:normal}
+  .text.md>:first-child{margin-top:0}
+  .text.md>:last-child{margin-bottom:0}
+  .text.md p,.text.md ul,.text.md ol,.text.md pre,.text.md table,.text.md blockquote{margin:0 0 8px}
+  .text.md h1,.text.md h2,.text.md h3,.text.md h4{margin:12px 0 6px;font-size:1.05em;font-weight:600}
+  .text.md ul,.text.md ol{padding-left:22px}
+  .text.md code{font-family:var(--vscode-editor-font-family);font-size:.95em;background:var(--vscode-textCodeBlock-background);padding:1px 4px;border-radius:3px}
+  .text.md pre{background:var(--vscode-textCodeBlock-background);padding:8px 10px;border-radius:3px;overflow-x:auto;white-space:pre}
+  .text.md pre code{background:none;padding:0}
+  .text.md table{border-collapse:collapse}
+  .text.md th,.text.md td{border:1px solid var(--vscode-panel-border);padding:3px 8px;text-align:left}
+  .text.md blockquote{border-left:3px solid var(--vscode-textBlockQuote-border);padding-left:10px;color:var(--vscode-descriptionForeground)}
+  .text.md a{color:var(--vscode-textLink-foreground)}
+  .phase:empty{display:none}
+  .body{flex:1;min-width:0;white-space:pre-wrap;word-wrap:break-word;line-height:1.5}
+  .human .who{padding-top:9px}
+  .human .body{background:var(--vscode-textBlockQuote-background,var(--vscode-input-background));padding:6px 10px;border-radius:6px}
+  .sys .body{color:var(--vscode-descriptionForeground);font-style:italic}
+  .old{opacity:.7}
+  .gray .body{opacity:.45}
+  .offstage{font-size:12px;color:var(--vscode-editorWarning-foreground);margin-bottom:2px}
+  .mark{font-size:12px;color:var(--vscode-errorForeground);margin-top:4px;font-style:normal}
+  #in{flex:0 0 auto;padding:10px 14px;border-top:1px solid var(--vscode-panel-border)}
+  textarea{width:100%;box-sizing:border-box;min-height:56px;font:inherit;padding:8px;border:1px solid var(--vscode-input-border,transparent);border-radius:3px;resize:vertical;background:var(--vscode-input-background);color:var(--vscode-input-foreground);outline:none}
+  textarea:focus{border-color:var(--vscode-focusBorder)}
+  textarea:disabled{opacity:.6}
+  #in{position:relative}
+  #stop{position:absolute;right:22px;bottom:18px;font:inherit;font-size:12px;padding:3px 10px;border:none;border-radius:2px;cursor:pointer;background:var(--vscode-button-secondaryBackground);color:var(--vscode-button-secondaryForeground);display:none}
+  #welcome{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center}
+  #welcome h2{margin:0;font-weight:500;font-size:16px}
+  #welcome p{margin:0;max-width:560px;line-height:1.5;color:var(--vscode-descriptionForeground)}
+  #welcome .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  #welcome button{font:inherit;padding:6px 14px;border:none;border-radius:2px;cursor:pointer;background:var(--vscode-button-secondaryBackground);color:var(--vscode-button-secondaryForeground)}
+  #welcome button.main{background:var(--vscode-button-background);color:var(--vscode-button-foreground)}
+  #welcome button.link{background:none;color:var(--vscode-textLink-foreground);padding:2px}
+  .welcome #welcome{display:flex}
+  .welcome #log,.welcome #in{display:none}
+  #pop{position:absolute;left:14px;bottom:100%;margin-bottom:-6px;min-width:160px;background:var(--vscode-editorSuggestWidget-background,var(--vscode-dropdown-background));color:var(--vscode-editorSuggestWidget-foreground,var(--vscode-foreground));border:1px solid var(--vscode-editorSuggestWidget-border,var(--vscode-dropdown-border));box-shadow:0 2px 8px rgba(0,0,0,.35);font-size:13px;display:none}
+  #pop div{padding:3px 10px;cursor:pointer;font-family:var(--vscode-editor-font-family)}
+  #pop div.on{background:var(--vscode-editorSuggestWidget-selectedBackground,var(--vscode-list-activeSelectionBackground));color:var(--vscode-editorSuggestWidget-selectedForeground,var(--vscode-list-activeSelectionForeground))}
+</style></head>
+<body><div id="app"><div id="bar"></div><div id="welcome"><h2></h2><p></p><div class="row"><button class="main" data-k="tell"></button><button data-k="know"></button></div><button class="link" data-k="off"></button></div><div id="log"></div><div id="in"><div id="pop"></div><textarea id="ta"></textarea><button id="stop"></button></div></div>
+<script nonce="__NONCE__">
+const vs = acquireVsCodeApi();
+const CHAT = __CHAT__, PENDING = __PENDING__, L = __TEXTS__;
+vs.setState({ chat: CHAT });
+const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
+const t = (k, v = {}) => fill(L.tool[k] || k, v);
+const log = document.getElementById("log"), ta = document.getElementById("ta"), bar = document.getElementById("bar"), box = document.getElementById("in");
+bar.textContent = t("noSessionYet");
+let ws = null, opened = false;
+const wsSend = (o) => ws.send(JSON.stringify(o));
+const st = { cur: null, last: null, lock: false, online: false, info: {} };
+const iconSrc = (a) => "__BASE__/ext/icons/" + L.icons[a] + (document.body.classList.contains("vscode-light") ? "-light" : "") + ".svg";
+const clock = (ts) => {
+  const d = ts ? new Date(ts) : new Date(), hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === new Date().toDateString() ? hm : d.toLocaleDateString([], { day: "2-digit", month: "2-digit" }) + " " + hm;
+};
+const part = (d, k) => d.querySelector("." + k);
+function add(cls, text, ts, agent) {
+  const d = document.createElement("div"); d.className = "msg " + cls;
+  d.innerHTML = '<div class="who"></div><div class="body"><div class="acts"></div><div class="phase"></div><div class="text"></div></div>';
+  if (agent && L.icons[agent]) { const img = document.createElement("img"); img.src = iconSrc(agent); d.children[0].appendChild(img); }
+  if (ts !== false) d.children[0].append(clock(ts));
+  if (cls.split(" ")[0] === "agent") { d.raw = text; if (text) render(d); } else part(d, "text").textContent = text;
+  log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
+}
+function act(d, text) { const a = document.createElement("div"); a.textContent = text; a.title = text; part(d, "acts").appendChild(a); log.scrollTop = log.scrollHeight; }
+const empty = (d) => !(d.raw || part(d, "text").textContent) && !part(d, "acts").children.length;
+const mdWait = new Map();
+let mdN = 0;
+function render(d) {
+  if (d.mdBusy) { d.mdAgain = true; return; }
+  d.mdBusy = true; mdN += 1; mdWait.set(mdN, d); vs.postMessage({ md: d.raw, id: mdN });
+}
+function rendered(id, html) {
+  const d = mdWait.get(id); mdWait.delete(id); if (!d) return;
+  const x = part(d, "text");
+  if (html === null) { x.classList.remove("md"); x.textContent = d.raw; } else { x.classList.add("md"); x.innerHTML = html; }
+  log.scrollTop = log.scrollHeight;
+  d.mdBusy = false;
+  if (d.mdAgain) { d.mdAgain = false; setTimeout(() => render(d), L.ui.mdDelay); }
+}
+function tick(d) { part(d, "phase").textContent = d.phase ? t(d.phase, { s: Math.floor((Date.now() - d.t0) / 1000) }) : ""; }
+function pending() { const d = add("agent", "", null, st.info.agent); d.t0 = Date.now(); d.phase = "starting"; tick(d); return d; }
+function settle() { if (!st.cur) return; st.cur.phase = null; tick(st.cur); if (empty(st.cur)) { st.cur.remove(); st.cur = null; } }
+setInterval(() => st.cur && tick(st.cur), L.ui.tick);
+function mark(d, err) { d.classList.add("gray"); const m = document.createElement("div"); m.className = "mark"; m.textContent = t("err", { err }); d.children[1].appendChild(m); }
+function offStage(d) {
+  const x = part(d, "text"), l = document.createElement("div");
+  if (d.raw !== undefined) { d.raw = d.raw.trimStart().slice(L.offStage.length).trimStart(); render(d); } else x.textContent = x.textContent.trimStart().slice(L.offStage.length).trimStart();
+  l.className = "offstage"; l.textContent = t("offStage"); x.before(l);
+}
+function welcome() {
+  const stage = CHAT.split("/").at(-2), w = document.getElementById("welcome"), app = document.getElementById("app");
+  w.querySelector("h2").textContent = t("welcomeTitle", { flow: L.flowTag });
+  w.querySelector("p").textContent = fill(L.flow.welcome, { stages: L.stages.join(" → "), stage, goal: (L.flow.goals || {})[stage] || "" });
+  const [tell, know, off] = w.querySelectorAll("button");
+  tell.textContent = t("tellMe"); know.textContent = t("iKnow"); off.textContent = t("hintsOff");
+  const go = (text) => { app.classList.remove("welcome"); if (text) input(text); else ta.focus(); };
+  tell.onclick = () => go(fill(L.flow.tell, { stage }) + (PENDING ? "\n\n" + PENDING : ""));
+  know.onclick = () => go(PENDING);
+  off.onclick = () => { wsSend({ t: "hints", on: false }); go(PENDING); };
+  app.classList.add("welcome");
+}
+function lock(v) { st.lock = v; ta.disabled = v || !st.online; stopBtn.style.display = v && st.online ? "block" : "none"; if (!ta.disabled) ta.focus(); }
+const stopBtn = document.getElementById("stop");
+stopBtn.textContent = t("stop"); stopBtn.title = t("stopHint");
+stopBtn.onclick = () => wsSend({ t: "stop", chat: CHAT });
+addEventListener("keydown", (e) => { if (e.key === "Escape" && st.lock && st.online && pop.style.display !== "block") { e.preventDefault(); wsSend({ t: "stop", chat: CHAT }); } });
+function renderBar() {
+  const i = st.info, parts = [];
+  parts.push(t("moves", { n: i.moves || 0 }));
+  if (i.last) parts.push(t("last", { time: new Date(i.last).toLocaleString() }));
+  if (i.own === false) parts.push(t("readOnlyBar", { author: i.owner }));
+  if (i.listed === false) parts.unshift(t("modelUnavailableBar"));
+  bar.textContent = "";
+  const dot = document.createElement("span"); dot.className = "dot" + (st.online ? "" : " off"); dot.textContent = "●"; dot.title = t(st.online ? "online" : "offline");
+  bar.append(dot);
+  if (!st.online) bar.append(t("offline") + " · ");
+  const m = document.createElement("span"); m.className = "model" + (i.listed === false ? " off" : ""); m.title = L.commands.model;
+  if (L.icons[i.agent]) { const img = document.createElement("img"); img.src = iconSrc(i.agent); m.appendChild(img); }
+  m.append(i.model || i.agent || t("noSessionYet"));
+  if (i.own !== false) m.onclick = () => input(L.commands.model);
+  bar.append(m, " · " + parts.join(" · "));
+  if (i.resume) {
+    const c = document.createElement("code"); c.textContent = i.resume; c.title = t("copyHint");
+    c.onclick = () => navigator.clipboard.writeText(i.resume).then(() => { c.textContent = t("copied"); setTimeout(() => c.textContent = i.resume, 1200); });
+    bar.append(" · ", c);
+  }
+}
+function light(s) { if (st.info.role && s !== st.light) { st.light = s; vs.postMessage({ light: s }); } }
+function sendIn(text) {
+  st.last = text; lock(true);
+  add("human", text);
+  st.cur = pending();
+  wsSend({ t: "in", chat: CHAT, d: text });
+}
+function input(text) {
+  if (st.lock) return;
+  const can = (c) => !st.info.commands || st.info.commands.includes(c);
+  const w0 = text.split(/\s+/)[0], arg = text.slice(w0.length).trim();
+  const dir = w0 === L.commands.next && can(w0) ? 1 : w0 === L.commands.back && can(w0) ? -1 : 0;
+  if (dir) {
+    const target = (st.info.jump || {})[dir];
+    if (!target) return add("sys", t("noStageBeyond"));
+    const blocks = [...String(st.lastAgent || "").matchAll(/```[^\n]*\n([\s\S]*?)```/g)];
+    const reasons = arg || (blocks.length ? blocks.at(-1)[1].trimEnd() : st.lastAgent || "");
+    const v = { fromStage: st.info.stage, fromArtifact: st.info.artifact, toStage: target.stage, toArtifact: target.artifact, last: st.last || "", reasons };
+    add("human", text); wsSend({ t: "cmd", chat: CHAT, d: text });
+    vs.postMessage({ jump: target.chat, text: fill(dir > 0 ? L.flow.next : L.flow.back, v) });
+    return;
+  }
+  sendIn(text);
+}
+ta.addEventListener("keydown", (e) => {
+  if (pop.style.display === "block") {
+    const items = popItems();
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = (sel + 1) % items.length; return popRender(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); sel = (sel + items.length - 1) % items.length; return popRender(); }
+    if (e.key === "Escape") { e.preventDefault(); pop.style.display = "none"; return; }
+    if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); return popPick(items[sel]); }
+  }
+  if (e.key !== "Enter" || e.shiftKey) return;
+  e.preventDefault();
+  const text = ta.value.trim(); if (!text) return;
+  ta.value = ""; popRender(); input(text);
+});
+const COMMANDS = [L.commands.back, L.commands.next, L.commands.add, L.commands.replace, L.commands.model].filter(Boolean);
+const pop = document.getElementById("pop");
+let sel = 0;
+function popItems() { return (st.info.commands || COMMANDS).filter((c) => c.startsWith(ta.value.trim())); }
+function popRender() {
+  const items = COMMANDS.some((c) => c[0] === ta.value[0]) && !ta.value.includes("\n") ? popItems() : [];
+  pop.innerHTML = ""; pop.style.display = items.length ? "block" : "none";
+  sel = Math.min(sel, Math.max(0, items.length - 1));
+  items.forEach((c, i) => { const d = document.createElement("div"); d.textContent = c; if (i === sel) d.className = "on"; d.onmousedown = (e) => { e.preventDefault(); popPick(c); }; pop.appendChild(d); });
+}
+function popPick(c) { ta.value = c; sel = 0; pop.style.display = "none"; ta.setSelectionRange(c.length, c.length); }
+ta.addEventListener("input", () => { sel = 0; popRender(); });
+ta.addEventListener("blur", () => { pop.style.display = "none"; });
+addEventListener("message", (e) => { const m = e.data; if (m.mdId) return rendered(m.mdId, m.html); if (m.send) input(m.send); else if (m.cmdKey) input(L.commands[m.cmdKey]); });
+function onMsg(e) {
+  const m = JSON.parse(e.data);
+  if (m.t === "tree" && !m.chat) return vs.postMessage({ refresh: true });
+  if (m.chat !== CHAT) return;
+  if (m.t === "hist") {
+    log.textContent = ""; st.cur = null;
+    let lastHist = null, acts = [];
+    for (const h of m.list) {
+      if (h.who === "act") { acts.push(h.text); continue; }
+      const sys = h.who !== "human" && h.who !== "agent";
+      const d = add((h.who === "cmd" ? "human" : sys ? "sys" : h.who) + " old", h.text, h.ts, h.who === "agent" ? h.agent : null);
+      if (h.who === "agent") { acts.forEach((x) => act(d, x)); acts = []; }
+      if (h.offStage) offStage(d);
+      if (h.err) mark(d, h.err); else if (h.stopped) mark(d, t("stopped")); else if (!sys && !h.offStage) lastHist = h.text;
+      if (h.who === "agent" && !h.err && !h.offStage) st.lastAgent = h.text;
+    }
+    if (m.list.length) add("sys", t("histSeparator"), false);
+    if (!st.last) st.last = lastHist;
+    st.info = { ...st.info, ...m.info }; renderBar();
+    vs.postMessage({ title: { project: st.info.project, iteration: st.info.iteration, stage: st.info.stage, author: st.info.owner, task: st.info.task, role: st.info.role, k: st.info.k } });
+    if (m.info.light) light(m.info.light);
+    if (m.info.own === false) box.style.display = "none";
+    if (m.info.busy) { st.cur = pending(); st.cur.phase = "thinking"; acts.forEach((x) => act(st.cur, x)); tick(st.cur); }
+    lock(!!m.info.busy);
+    if (!opened) {
+      opened = true;
+      if (!m.list.length && !m.info.role && m.info.own !== false && m.info.hints && L.flow && L.flow.welcome) welcome();
+      else if (PENDING) input(PENDING);
+    }
+  } else if (m.t === "out") {
+    if (!st.cur) st.cur = pending();
+    st.cur.phase = null; tick(st.cur);
+    st.cur.raw = (st.cur.raw || "") + m.d; render(st.cur);
+  } else if (m.t === "act") {
+    if (!st.cur) st.cur = pending();
+    act(st.cur, m.d);
+  } else if (m.t === "phase") {
+    if (st.cur && st.cur.phase) { st.cur.phase = m.d; tick(st.cur); }
+  } else if (m.t === "sys") {
+    if (st.cur && empty(st.cur)) { st.cur.remove(); st.cur = null; }
+    add("sys", m.d);
+    if (st.lock && !st.cur) st.cur = pending();
+  } else if (m.t === "jump") {
+    vs.postMessage({ jump: m.jump, text: m.text });
+  } else if (m.t === "kicked") {
+    settle(); add("human", m.d); st.last = m.d; st.cur = pending(); lock(true);
+  } else if (m.t === "openTab") {
+    vs.postMessage({ openTab: m.tab, focus: m.focus });
+  } else if (m.t === "pickTask") {
+    vs.postMessage({ pickTask: m.list, cmd: m.cmd, title: m.title });
+  } else if (m.t === "tree") {
+    vs.postMessage({ refresh: true });
+  } else if (m.t === "state") {
+    light(m.s);
+  } else if (m.t === "model") {
+    settle(); vs.postMessage({ pickModel: m.list, cur: m.cur, bad: m.bad });
+  } else if (m.t === "info") {
+    st.info = { ...st.info, ...m }; delete st.info.t; delete st.info.chat; renderBar();
+  } else if (m.t === "done") {
+    const d = st.cur; settle();
+    if (d && st.cur) { if (m.offStage) offStage(d); if (m.err) mark(d, m.err); else if (!m.offStage) st.last = st.lastAgent = d.raw; }
+    st.cur = null; st.info.moves = m.move; renderBar();
+    lock(!!m.lock);
+  }
+}
+function connect() {
+  ws = new WebSocket("__WS__/ws?__AUTH__");
+  ws.onopen = () => { st.online = true; renderBar(); wsSend({ t: "open", chat: CHAT }); };
+  ws.onmessage = onMsg;
+  ws.onclose = () => { st.online = false; renderBar(); lock(true); setTimeout(connect, L.ui.reconnect); };
+}
+connect();
+</script></body></html>

@@ -1,0 +1,14 @@
+{
+  "openChat": "ife: открыть чат",
+  "back": "ife: предыдущая стадия",
+  "next": "ife: следующая стадия",
+  "add": "ife: добавить в артефакт",
+  "replace": "ife: заменить артефакт",
+  "model": "ife: модель",
+  "terminal": "ife: терминал",
+  "refresh": "ife: обновить",
+  "newProject": "ife: новый проект",
+  "updateFlow": "ife: обновить flow",
+  "feed": "требуют внимания",
+  "newIteration": "ife: новая итерация"
+}

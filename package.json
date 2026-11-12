@@ -1,0 +1,20 @@
+{
+  "name": "ife",
+  "version": "0.0.1",
+  "description": "An editor for working in a pair with AI agents: VS Code for the Web, a local Node server and flows that set the rules of work",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vfabr/ife.git"
+  },
+  "main": "server.js",
+  "type": "commonjs",
+  "dependencies": {
+    "node-pty": "^1.1.0",
+    "ws": "^8.22.1"
+  },
+  "allowScripts": {
+    "node-pty@1.1.0": true
+  }
+}

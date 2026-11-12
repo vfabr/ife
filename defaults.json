@@ -1,0 +1,339 @@
+{
+  "port": 7777,
+  "language": "en",
+  "personal": "~/.config/ife.json",
+  "hints": true,
+  "auth": {
+    "token": "~/.ife/token",
+    "bytes": 24,
+    "param": "tkn",
+    "cookie": "ife-{port}",
+    "days": 365,
+    "hosts": [
+      "127.0.0.1",
+      "localhost",
+      "*.localhost"
+    ],
+    "browser": "xdg-open"
+  },
+  "flows": "~/.ife/flows",
+  "feed": {
+    "waits": ["ready", "confirmed", "refuted"],
+    "lastWho": ["agent", "sys"],
+    "detail": 240,
+    "attention": ["confirmed", "refuted", "notDone", "question", "ready", "roundsOut", "applyFailed", "testsOut", "crashed", "error"]
+  },
+  "flowSources": [
+    "https://github.com/vfabr/flows/releases/download/index/index.json"
+  ],
+  "flowSourcesTtl": 300,
+  "flowArchive": ".tar.gz",
+  "unpack": [
+    "tar",
+    "-xzf",
+    "{file}",
+    "-C",
+    "{dir}"
+  ],
+  "projectFile": "ife.json",
+  "projectName": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+  "iterationName": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+  "flowDir": "flow",
+  "flowFile": "flow.json",
+  "layout": {
+    "stageArtifact": "metamodel/{iteration}/{stage}/artifact.md"
+  },
+  "chatFile": "pair.jsonl",
+  "chats": {},
+  "default": {
+    "provider": "claude",
+    "models": {
+      "claude": "claude-fable-5-1",
+      "codex": "gpt-5.6-luna"
+    }
+  },
+  "limits": {
+    "words": 500,
+    "short": 150,
+    "questions": 1,
+    "tries": 3
+  },
+  "order": {
+    "dirs": [
+      "flow",
+      "metamodel"
+    ],
+    "files": [
+      "artifact.md",
+      "pair.jsonl",
+      "task.jsonl", "experiment.jsonl"
+    ]
+  },
+  "commands": {
+    "add": "/add",
+    "replace": "/replace",
+    "model": "/model",
+    "short": "/short",
+    "iteration": "/iteration"
+  },
+  "providers": {
+    "claude": {
+      "parser": "claude-stream",
+      "icon": "claude",
+      "command": "claude",
+      "args": [
+        "-p",
+        "--input-format",
+        "stream-json",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--include-partial-messages",
+        "--setting-sources",
+        "",
+        "--strict-mcp-config",
+        "--disable-slash-commands",
+        "--settings",
+        "{\"autoMemoryEnabled\":false}",
+        "--model",
+        "{model}"
+      ],
+      "new": [],
+      "resume": [
+        "--resume",
+        "{sid}"
+      ],
+      "resumeHint": "claude --resume {sid}",
+      "unsetEnv": [
+        "CLAUDECODE",
+        "CLAUDE_CODE_ENTRYPOINT",
+        "ANTHROPIC_API_KEY"
+      ],
+      "badModel": "selected model",
+      "models": [],
+      "catalog": {
+        "source": "agent",
+        "key": "resolvedModel",
+        "alias": "value"
+      },
+      "actions": {
+        "keys": [
+          "file_path",
+          "command",
+          "pattern",
+          "path",
+          "url",
+          "query",
+          "description"
+        ]
+      },
+      "system": {
+        "args": [
+          "--system-prompt",
+          "{system}"
+        ]
+      },
+      "access": {
+        "readonly": {
+          "args": [
+            "--tools",
+            "Read,Glob,Grep"
+          ]
+        },
+        "readwrite": {
+          "args": [
+            "--tools",
+            "Read,Glob,Grep,Edit,Write,Bash",
+            "--allowedTools",
+            "Read,Glob,Grep,Edit,Write,Bash"
+          ]
+        }
+      }
+    },
+    "codex": {
+      "parser": "codex-rpc",
+      "icon": "codex",
+      "command": "codex",
+      "args": [
+        "app-server",
+        "-c",
+        "features.apps=false",
+        "-c",
+        "features.plugins=false",
+        "-c",
+        "features.remote_plugin=false",
+        "-c",
+        "features.plugin_discovery_prefetch=false",
+        "-c",
+        "features.tool_suggest=false",
+        "-c",
+        "features.image_generation=false",
+        "-c",
+        "features.browser_use=false",
+        "-c",
+        "features.computer_use=false",
+        "-c",
+        "features.goals=false",
+        "-c",
+        "features.skill_search=false",
+        "-c",
+        "features.multi_agent=false",
+        "-c",
+        "skills.include_instructions=false",
+        "-c",
+        "skills.bundled.enabled=false",
+        "-c",
+        "include_apps_instructions=false",
+        "-c",
+        "include_permissions_instructions=false",
+        "-c",
+        "include_environment_context=false",
+        "-c",
+        "include_collaboration_mode_instructions=false",
+        "-c",
+        "memories.use_memories=false",
+        "-c",
+        "memories.generate_memories=false"
+      ],
+      "resumeHint": "codex resume {sid}",
+      "unsetEnv": [],
+      "client": {
+        "name": "ife",
+        "version": "0.0.1"
+      },
+      "thread": {
+        "approvalPolicy": "never"
+      },
+      "badModel": "model",
+      "models": [],
+      "catalog": {
+        "source": "agent",
+        "key": "model",
+        "filter": {
+          "hidden": false
+        }
+      },
+      "actions": {
+        "skip": [
+          "userMessage",
+          "agentMessage",
+          "reasoning",
+          "hookPrompt",
+          "functionCallOutput"
+        ],
+        "keys": [
+          "command",
+          "path",
+          "tool",
+          "query",
+          "changes.0.path"
+        ]
+      },
+      "system": {
+        "thread": "baseInstructions"
+      },
+      "access": {
+        "readonly": {
+          "thread": {
+            "sandbox": "read-only"
+          }
+        },
+        "readwrite": {
+          "thread": {
+            "sandbox": "workspace-write"
+          }
+        }
+      }
+    }
+  },
+  "ui": {
+    "reconnect": 2000,
+    "tick": 1000,
+    "mdDelay": 100,
+    "lights": {
+      "busy": "light-busy",
+      "wait": "light-wait",
+      "error": "light-error",
+      "done": "light-done",
+      "dropped": "light-dropped",
+      "ready": "light-ready",
+      "refuted": "light-refuted"
+    },
+    "taskLights": {
+      "done": "done",
+      "dropped": "dropped",
+      "back": "error",
+      "ready": "ready",
+      "default": "wait"
+    },
+    "chatLights": ["tasks"],
+    "openTabs": ["experiments"],
+    "treeDelay": 300,
+    "workLights": {
+      "experiments": {
+        "confirmed": "wait",
+        "refuted": "refuted",
+        "back": "error",
+        "closed": "done",
+        "dropped": "dropped",
+        "default": "error"
+      }
+    }
+  },
+  "terminal": {
+    "shell": "bash",
+    "unsetEnv": [
+      "CLAUDECODE",
+      "CLAUDE_CODE_ENTRYPOINT"
+    ]
+  },
+  "access": "readonly",
+  "closed": [
+    "done",
+    "dropped",
+    "closed"
+  ],
+  "scratch": {
+    "root": "{tmp}/ife-{uid}",
+    "dir": "{project}/{iteration}-{stage}-{n}"
+  },
+  "vscode": {
+    "version": "1.145.2",
+    "url": "https://github.com/vfabr/ife/releases/download/vscode-{version}/vscode-web-{version}.tar.gz",
+    "digest": "sha256:b688678def5849a6655013e3cf45d6e5872d9390cbf280bcbadc1e0779841614",
+    "dir": "~/.ife/vscode/{version}",
+    "marker": "package.json",
+    "exclude": [
+      "mermaid-markdown-features"
+    ],
+    "workbench": {
+      "folderUri": {
+        "scheme": "ife",
+        "path": "/{root}"
+      },
+      "additionalBuiltinExtensions": [
+        {
+          "scheme": "http",
+          "authority": "{host}",
+          "path": "/ext"
+        }
+      ],
+      "productConfiguration": {
+        "nameShort": "ife",
+        "nameLong": "ife",
+        "applicationName": "ife",
+        "dataFolderName": ".ife",
+        "webviewContentExternalBaseUrlTemplate": "http://{{uuid}}.localhost:{port}/vscode/out/vs/workbench/contrib/webview/browser/pre/"
+      },
+      "configurationDefaults": {
+        "workbench.colorTheme": "Default Dark Modern",
+        "workbench.startupEditor": "none",
+        "workbench.tips.enabled": false,
+        "telemetry.telemetryLevel": "off",
+        "update.mode": "none",
+        "chat.disableAIFeatures": true
+      }
+    }
+  },
+  "ready": "ready"
+}
