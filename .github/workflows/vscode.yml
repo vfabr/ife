@@ -37,8 +37,8 @@ jobs:
       - name: exclude extensions
         working-directory: vscode
         run: |
-          for e in $EXCLUDE; do sed -i "s/^const excludedExtensions = \[/&\n\t'$e',/" build/lib/extensions.ts; done
-          sed -n '/^const excludedExtensions/,/^];/p' build/lib/extensions.ts
+          for e in $EXCLUDE; do sed -i -e "s/^const excludedExtensions = \[/&\n\t'$e',/" -e "/{ script: '$e\//d" build/lib/extensions.ts; done
+          sed -n -e '/^const excludedExtensions/,/^];/p' -e '/^const esbuildMediaScripts/,/^];/p' build/lib/extensions.ts
       - name: build
         working-directory: vscode
         run: npm run gulp vscode-web-min
