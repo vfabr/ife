@@ -1,0 +1,43 @@
+name: vscode
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: VS Code version tag
+        required: true
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: microsoft/vscode
+          ref: ${{ inputs.version }}
+          path: vscode
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: vscode/.nvmrc
+      - name: system packages
+        run: sudo apt-get update && sudo apt-get install -y libkrb5-dev libx11-dev libxkbfile-dev libsecret-1-dev
+      - name: dependencies
+        working-directory: vscode
+        run: npm ci
+      - name: build
+        working-directory: vscode
+        run: npm run gulp vscode-web-min
+      - name: package
+        run: |
+          tar -czf "vscode-web-$VERSION.tar.gz" -C vscode-web .
+          sha256sum "vscode-web-$VERSION.tar.gz" > "vscode-web-$VERSION.tar.gz.sha256"
+          du -sh vscode-web "vscode-web-$VERSION.tar.gz"
+      - name: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "vscode-$VERSION" "vscode-web-$VERSION.tar.gz" "vscode-web-$VERSION.tar.gz.sha256" --repo "$GITHUB_REPOSITORY" --title "vscode-$VERSION" --notes "VS Code $VERSION for the web, built from microsoft/vscode, MIT" --latest=false
