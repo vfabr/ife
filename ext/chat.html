@@ -111,7 +111,7 @@ function offStage(d) {
   l.className = "offstage"; l.textContent = t("offStage"); x.before(l);
 }
 function welcome() {
-  const stage = CHAT.split("/").at(-2), w = document.getElementById("welcome"), app = document.getElementById("app");
+  const stage = st.info.stage, w = document.getElementById("welcome"), app = document.getElementById("app");
   w.querySelector("h2").textContent = t("welcomeTitle", { flow: L.flowTag });
   w.querySelector("p").textContent = fill(L.flow.welcome, { stages: L.stages.join(" → "), stage, goal: (L.flow.goals || {})[stage] || "" });
   const [tell, know, off] = w.querySelectorAll("button");
