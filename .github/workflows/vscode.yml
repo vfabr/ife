@@ -5,6 +5,10 @@ on:
       version:
         description: VS Code version tag
         required: true
+      exclude:
+        description: built-in extensions to leave out, separated by spaces
+        required: false
+        default: ""
 permissions:
   contents: write
 jobs:
@@ -12,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
+      EXCLUDE: ${{ inputs.exclude }}
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
@@ -29,6 +34,9 @@ jobs:
       - name: dependencies
         working-directory: vscode
         run: npm ci
+      - name: exclude extensions
+        working-directory: vscode/extensions
+        run: for e in $EXCLUDE; do rm -r "$e"; done
       - name: build
         working-directory: vscode
         run: npm run gulp vscode-web-min
@@ -40,4 +48,12 @@ jobs:
       - name: release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "vscode-$VERSION" "vscode-web-$VERSION.tar.gz" "vscode-web-$VERSION.tar.gz.sha256" --repo "$GITHUB_REPOSITORY" --title "vscode-$VERSION" --notes "VS Code $VERSION for the web, built from microsoft/vscode, MIT" --latest=false
+        run: |
+          files="vscode-web-$VERSION.tar.gz vscode-web-$VERSION.tar.gz.sha256"
+          notes="VS Code $VERSION for the web, built from microsoft/vscode, MIT. Left out: ${EXCLUDE:-nothing}"
+          if gh release view "vscode-$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "vscode-$VERSION" $files --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "vscode-$VERSION" --notes "$notes" --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "vscode-$VERSION" $files --repo "$GITHUB_REPOSITORY" --title "vscode-$VERSION" --notes "$notes" --latest=false
+          fi
