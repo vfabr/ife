@@ -1,0 +1,79 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.read.outputs.targets }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: echo "targets=$(jq -c .release.targets defaults.json)" >> "$GITHUB_OUTPUT"
+  build:
+    needs: plan
+    strategy:
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.targets) }}
+    runs-on: ${{ matrix.target.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: settings
+        run: |
+          echo "NODE_V=$(jq -r .release.node defaults.json)" >> "$GITHUB_ENV"
+          echo "VSC_V=$(jq -r .vscode.version defaults.json)" >> "$GITHUB_ENV"
+          echo "NAME=ife-${GITHUB_REF_NAME#v}-${{ matrix.target.name }}" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_V }}
+      - name: dependencies
+        run: npm ci --omit=dev
+      - name: layout
+        run: |
+          mkdir -p out/ife/app out/ife/node/bin out/ife/vscode/$VSC_V
+          cp -R $(jq -r '.release.app | join(" ")' defaults.json) out/ife/app/
+          cp $(jq -r '.release.docs | join(" ")' defaults.json) out/ife/
+          cp release/ife out/ife/ife
+          chmod +x out/ife/ife
+      - name: node
+        run: |
+          p="${{ matrix.target.node }}"
+          url=$(jq -r --arg v "$NODE_V" --arg p "$p" '.release.nodeUrl | gsub("\\{version\\}"; $v) | gsub("\\{platform\\}"; $p)' defaults.json)
+          curl -fsSL "$url" -o node.tgz
+          tar -xzf node.tgz -C out/ife/node/bin --strip-components=2 "node-v$NODE_V-$p/bin/node"
+          tar -xzf node.tgz -C out/ife/node --strip-components=1 "node-v$NODE_V-$p/LICENSE"
+          out/ife/node/bin/node --version
+          find out/ife/app/node_modules -type d -path "*/prebuilds/*" -prune ! -name "$p" -exec rm -r {} +
+      - name: vscode
+        run: |
+          url=$(jq -r --arg v "$VSC_V" '.vscode.url | gsub("\\{version\\}"; $v)' defaults.json)
+          sum=$(jq -r '.vscode.digest | sub("^sha256:"; "")' defaults.json)
+          curl -fsSL "$url" -o vscode.tgz
+          echo "$sum  vscode.tgz" | shasum -a 256 -c
+          tar -xzf vscode.tgz -C out/ife/vscode/$VSC_V
+      - name: package
+        run: |
+          tar -czf "$NAME.tar.gz" -C out ife
+          du -sh out/ife "$NAME.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: ${{ env.NAME }}.tar.gz
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" *.tar.gz SHA256SUMS --repo "$GITHUB_REPOSITORY" --title "ife $GITHUB_REF_NAME" --notes "Download the archive for your system, unpack it and run ./ife/ife <projects folder>."

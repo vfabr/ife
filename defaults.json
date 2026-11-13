@@ -340,5 +340,39 @@
       }
     }
   },
+  "release": {
+    "node": "26.13.1",
+    "nodeUrl": "https://nodejs.org/dist/v{version}/node-v{version}-{platform}.tar.gz",
+    "app": [
+      "server.js",
+      "ext",
+      "public",
+      "defaults.json",
+      "package.json",
+      "node_modules"
+    ],
+    "docs": [
+      "LICENSE",
+      "NOTICE",
+      "README.md"
+    ],
+    "targets": [
+      {
+        "name": "linux-x64",
+        "runner": "ubuntu-latest",
+        "node": "linux-x64"
+      },
+      {
+        "name": "macos-arm64",
+        "runner": "macos-latest",
+        "node": "darwin-arm64"
+      },
+      {
+        "name": "macos-x64",
+        "runner": "macos-15-intel",
+        "node": "darwin-x64"
+      }
+    ]
+  },
   "ready": "ready"
 }
