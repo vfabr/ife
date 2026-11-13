@@ -143,5 +143,6 @@
   "configAt": "ife: config {file}",
   "askNoTty": "ife: there is no terminal to ask in: put {keys} into {file}",
   "ask_author": "Your name, used for your chats and tasks in projects [{def}]: ",
-  "ask_lang": "Language ({langs}) [{def}]: "
+  "ask_lang": "Language ({langs}) [{def}]: ",
+  "noProjectsApp": "ife: give the folder with your projects: {cmd} <projects folder>"
 }

@@ -11,13 +11,32 @@ one per stage of work, plus chats for coders, auditors and experimenters.
 - **Flows set the rules.** A flow describes the stages, roles, commands and texts. The
   default flow is [kredo](https://github.com/vfabr/flows).
 
-## Requirements
+## Download and run
 
-- Node.js (tested with 26) and npm.
-- At least one agent CLI installed and signed in: `claude` or `codex`.
-- Linux or macOS.
+Take the archive for your system from the [latest release](https://github.com/vfabr/ife/releases/latest):
+Linux x64 or arm64, macOS on Apple silicon or Intel. Unpack it and run:
 
-## Install
+```sh
+tar xzf ife-<version>-<system>.tar.gz
+./ife/ife ~/projects
+```
+
+The archive has everything inside: Node.js, ife and VS Code. On the first run ife asks your name
+and language and prints a link to open in the browser. Its settings, token and flows are kept in
+the `ife` folder itself.
+
+You need an agent CLI installed and signed in: `claude` or `codex`.
+
+- **Linux:** the system library `libatomic` is needed. Desktop systems have it; on a minimal
+  server or container install it (`dnf install libatomic` or `apt install libatomic1`).
+- **macOS:** the archive is not signed yet, so macOS blocks the first start. Allow it once:
+  `xattr -dr com.apple.quarantine ife`.
+
+Windows is not supported yet.
+
+## Development
+
+Requirements: Node.js 26 and npm, an agent CLI (`claude` or `codex`), Linux or macOS.
 
 ```sh
 git clone https://github.com/vfabr/ife.git
@@ -25,7 +44,7 @@ cd ife
 npm install
 ```
 
-## Run
+Run:
 
 ```sh
 mkdir -p ~/ife-projects

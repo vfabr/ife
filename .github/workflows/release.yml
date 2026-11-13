@@ -49,8 +49,9 @@ jobs:
           mkdir -p out/ife/app out/ife/node/bin out/ife/vscode/$VSC_V
           cp -R $(jq -r '.release.app | join(" ")' defaults.json) out/ife/app/
           cp $(jq -r '.release.docs | join(" ")' defaults.json) out/ife/
-          cp release/ife out/ife/ife
-          chmod +x out/ife/ife
+          l=$(jq -r .release.launcher defaults.json)
+          cp "release/$l" "out/ife/$l"
+          chmod +x "out/ife/$l"
       - name: node
         run: |
           p="${{ matrix.target.node }}"

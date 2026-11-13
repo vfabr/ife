@@ -19,7 +19,11 @@ const LANGS = path.join(__dirname, "ext", "languages");
 const T0 = readJson(path.join(LANGS, base.language + ".json")) || {};
 const ROOT = process.argv[2] ? path.resolve(home(process.argv[2])) : null;
 const RUN = process.argv[3] ? path.resolve(home(process.argv[3])) : null;
-if (!ROOT || !RUN || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) { console.error(fill(T0.noProjects, {})); process.exit(1); }
+if (!ROOT || !RUN || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) {
+  const app = RUN && path.dirname(__dirname) === RUN, cmd = app && path.relative(process.cwd(), path.join(RUN, base.release.launcher));
+  console.error(app ? fill(T0.noProjectsApp, { cmd: cmd.includes(path.sep) ? cmd : "." + path.sep + cmd }) : fill(T0.noProjects, {}));
+  process.exit(1);
+}
 const CONF = path.join(RUN, base.config.file);
 const seeded = !fs.existsSync(CONF);
 if (seeded) {

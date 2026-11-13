@@ -353,6 +353,7 @@
     ],
     "toolchain": "dnf install -y -q gcc-toolset-13 make python39 tar gzip libatomic && source /opt/rh/gcc-toolset-13/enable && export PYTHON=python3.9",
     "runtime": "dnf install -y -q libatomic",
+    "launcher": "ife",
     "docs": [
       "LICENSE",
       "NOTICE",
