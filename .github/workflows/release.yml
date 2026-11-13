@@ -71,7 +71,7 @@ jobs:
         run: |
           js='const p=require("./ife/app/node_modules/node-pty").spawn("/bin/sh",["-c","echo ife-pty-ok"],{});let o="";p.onData((d)=>(o+=d));p.onExit(()=>{if(!o.includes("ife-pty-ok"))process.exit(1);console.log("terminal ok")})'
           if [ -n "${{ matrix.target.container }}" ]; then
-            docker run --rm -v "$PWD/out:/o" -w /o "${{ matrix.target.container }}" ./ife/node/bin/node -e "$js"
+            docker run --rm -v "$PWD/out:/o" -w /o -e JS="$js" -e RUNTIME="$(jq -r .release.runtime defaults.json)" "${{ matrix.target.container }}" bash -c 'eval "$RUNTIME" && ./ife/node/bin/node -e "$JS"'
           else
             (cd out && ./ife/node/bin/node -e "$js")
           fi

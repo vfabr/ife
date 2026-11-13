@@ -351,7 +351,8 @@
       "package.json",
       "node_modules"
     ],
-    "toolchain": "dnf install -y -q gcc-toolset-13 make python39 tar gzip && source /opt/rh/gcc-toolset-13/enable && export PYTHON=python3.9",
+    "toolchain": "dnf install -y -q gcc-toolset-13 make python39 tar gzip libatomic && source /opt/rh/gcc-toolset-13/enable && export PYTHON=python3.9",
+    "runtime": "dnf install -y -q libatomic",
     "docs": [
       "LICENSE",
       "NOTICE",
