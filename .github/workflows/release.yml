@@ -16,6 +16,7 @@ jobs:
   build:
     needs: plan
     strategy:
+      fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.plan.outputs.targets) }}
     runs-on: ${{ matrix.target.runner }}
@@ -40,7 +41,9 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w -e URL="$url" -e DIR="node-v$NODE_V-$p" -e TOOL="$tool" "${{ matrix.target.container }}" bash -c 'eval "$TOOL" && curl -fsSL "$URL" | tar -xz -C /opt && export PATH="/opt/$DIR/bin:$PATH" && cd node_modules/node-pty && npx --yes node-gyp rebuild'
       - name: native modules
         if: "!matrix.target.container"
-        run: node -e "require('node-pty')"
+        run: |
+          chmod +x node_modules/node-pty/prebuilds/*/spawn-helper
+          node -e "require('node-pty')"
       - name: layout
         run: |
           mkdir -p out/ife/app out/ife/node/bin out/ife/vscode/$VSC_V

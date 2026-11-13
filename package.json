@@ -1,6 +1,6 @@
 {
   "name": "ife",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An editor for working in a pair with AI agents: VS Code for the Web, a local Node server and flows that set the rules of work",
   "private": true,
   "license": "Apache-2.0",
