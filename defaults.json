@@ -351,6 +351,7 @@
       "package.json",
       "node_modules"
     ],
+    "toolchain": "dnf install -y -q gcc-toolset-13 make python39 tar gzip && source /opt/rh/gcc-toolset-13/enable && export PYTHON=python3.9",
     "docs": [
       "LICENSE",
       "NOTICE",
@@ -359,8 +360,15 @@
     "targets": [
       {
         "name": "linux-x64",
-        "runner": "ubuntu-22.04",
-        "node": "linux-x64"
+        "runner": "ubuntu-latest",
+        "node": "linux-x64",
+        "container": "almalinux:8"
+      },
+      {
+        "name": "linux-arm64",
+        "runner": "ubuntu-24.04-arm",
+        "node": "linux-arm64",
+        "container": "almalinux:8"
       },
       {
         "name": "macos-arm64",

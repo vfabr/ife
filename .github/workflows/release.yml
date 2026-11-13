@@ -31,10 +31,16 @@ jobs:
           node-version: ${{ env.NODE_V }}
       - name: dependencies
         run: npm ci --omit=dev
-      - name: native modules
+      - name: native modules in an old Linux
+        if: matrix.target.container
         run: |
-          node -e "require('node-pty')" || (cd node_modules/node-pty && npx --yes node-gyp rebuild)
-          node -e "require('node-pty')"
+          p="${{ matrix.target.node }}"
+          url=$(jq -r --arg v "$NODE_V" --arg p "$p" '.release.nodeUrl | gsub("\\{version\\}"; $v) | gsub("\\{platform\\}"; $p)' defaults.json)
+          tool=$(jq -r .release.toolchain defaults.json)
+          docker run --rm -v "$PWD:/w" -w /w -e URL="$url" -e DIR="node-v$NODE_V-$p" -e TOOL="$tool" "${{ matrix.target.container }}" bash -c 'eval "$TOOL" && curl -fsSL "$URL" | tar -xz -C /opt && export PATH="/opt/$DIR/bin:$PATH" && cd node_modules/node-pty && npx --yes node-gyp rebuild'
+      - name: native modules
+        if: "!matrix.target.container"
+        run: node -e "require('node-pty')"
       - name: layout
         run: |
           mkdir -p out/ife/app out/ife/node/bin out/ife/vscode/$VSC_V
@@ -58,6 +64,14 @@ jobs:
           curl -fsSL "$url" -o vscode.tgz
           echo "$sum  vscode.tgz" | shasum -a 256 -c
           tar -xzf vscode.tgz -C out/ife/vscode/$VSC_V
+      - name: check terminal
+        run: |
+          js='const p=require("./ife/app/node_modules/node-pty").spawn("/bin/sh",["-c","echo ife-pty-ok"],{});let o="";p.onData((d)=>(o+=d));p.onExit(()=>{if(!o.includes("ife-pty-ok"))process.exit(1);console.log("terminal ok")})'
+          if [ -n "${{ matrix.target.container }}" ]; then
+            docker run --rm -v "$PWD/out:/o" -w /o "${{ matrix.target.container }}" ./ife/node/bin/node -e "$js"
+          else
+            (cd out && ./ife/node/bin/node -e "$js")
+          fi
       - name: package
         run: |
           tar -czf "$NAME.tar.gz" -C out ife
