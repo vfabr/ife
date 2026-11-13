@@ -4,7 +4,8 @@
   "config": {
     "file": "config.json",
     "seed": ["port"],
-    "ask": ["author", "lang"]
+    "ask": ["author", "lang"],
+    "tty": "/dev/tty"
   },
   "hints": true,
   "auth": {

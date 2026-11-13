@@ -29,8 +29,9 @@ if (seeded) {
 console.log(fill(T0[seeded ? "configCreated" : "configAt"], { file: CONF }));
 const askLine = (q) => {
   process.stdout.write(q);
-  const b = Buffer.alloc(1), bytes = [];
-  while (fs.readSync(0, b, 0, 1) === 1 && b[0] !== 10) bytes.push(b[0]);
+  const tty = fs.openSync(base.config.tty, "r"), b = Buffer.alloc(1), bytes = [];
+  while (fs.readSync(tty, b, 0, 1) === 1 && b[0] !== 10) bytes.push(b[0]);
+  fs.closeSync(tty);
   return Buffer.from(bytes).toString("utf8").trim();
 };
 const user = readJson(CONF) || {};
