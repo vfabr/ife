@@ -17,7 +17,7 @@
       "ife": [
         {
           "id": "ife.tree",
-          "name": "ife"
+          "name": "%tree%"
         },
         {
           "id": "ife.feed",

@@ -9,6 +9,7 @@
   "refresh": "ife: refresh",
   "newProject": "ife: new project",
   "updateFlow": "ife: update flow",
+  "tree": "projects",
   "feed": "need attention",
   "newIteration": "ife: new iteration"
 }
