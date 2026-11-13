@@ -280,6 +280,9 @@ const parsers = {
 const rpcLine = (o) => JSON.stringify({ jsonrpc: "2.0", ...o }) + "\n";
 const provider = (a) => cfg.providers[a];
 const usable = (a) => !!(provider(a) && parsers[provider(a).parser]);
+const found = (cmd) => (String(process.env.PATH || "").split(path.delimiter).filter(Boolean).concat(cmd.includes(path.sep) ? [""] : []))
+  .some((d) => { try { fs.accessSync(path.resolve(d, cmd), fs.constants.X_OK); return true; } catch { return false; } });
+const installed = (a) => usable(a) && found(provider(a).command);
 const cleanEnv = (list) => { const e = { ...process.env }; for (const k of list || []) delete e[k]; return e; };
 const ask = (p, a, input, take) => new Promise((ok, fail) => {
   const args = [...p.args, ...(p.new || [])].map((x) => fill(x, { model: cfg.default.models[a] || "", sid: "", cwd: ROOT }));
@@ -311,12 +314,13 @@ function fullName(a, m) {
 }
 const available = (a, m) => { const list = models(a); return !list.length || list.includes(fullName(a, m)); };
 async function refreshCatalogs() {
-  await Promise.all(Object.keys(cfg.providers).filter(usable).map(async (a) => {
+  await Promise.all(Object.keys(cfg.providers).filter(installed).map(async (a) => {
     const p = provider(a), get = parsers[p.parser].catalog;
     if (p.catalog && p.catalog.source === "agent" && get) { try { catalogs[a] = await get(p, a); } catch {} }
   }));
 }
-const modelList = () => Object.keys(cfg.providers).filter(usable).flatMap((a) => models(a).map((model) => ({ agent: a, model })));
+const modelList = () => Object.keys(cfg.providers).filter(installed).flatMap((a) => models(a).map((model) => ({ agent: a, model })));
+const agentsLine = () => { const all = Object.keys(cfg.providers).filter(usable); return all.some(installed) ? t("agentsFound", { list: all.map((a) => t(installed(a) ? "agentYes" : "agentNo", { name: a })).join(", ") }) : t("agentsNone", { list: all.map((a) => provider(a).command).join(", ") }); };
 
 if (!usable(cfg.default.provider)) { console.error(t("noAdapter", { name: cfg.default.provider })); process.exit(1); }
 refreshCatalogs().then(() => {
@@ -533,6 +537,7 @@ function session(rel) {
   async function pick(note) { await refreshCatalogs(); send({ t: "model", bad: note, cur: { agent: st.agent, model: st.modelReq }, list: modelList() }); }
   function setModel(a, m) {
     if (!usable(a)) { send({ t: "sys", move: st.move, d: t("noAdapter", { name: a }) }); return false; }
+    if (!installed(a)) { send({ t: "sys", move: st.move, d: t("agentMissing", { bin: provider(a).command, cmd: C.model }) }); return false; }
     if (st.proc) { const p = st.proc; st.proc = null; p.kill(); }
     st.agent = a; st.modelReq = m; st.sid = null; st.model = null; st.fed = false;
     rec(head());
@@ -641,6 +646,16 @@ function session(rel) {
         send({ t: "out", move: st.move, try: st.try, d: t("agentExit", { code, stderr: err.slice(-500) }) });
         send({ t: "done", move: st.move, try: st.try, lock: false });
       }
+    });
+    proc.stdin.on("error", () => {});
+    proc.on("error", (e) => {
+      if (st.proc !== proc) return;
+      st.proc = null; busy(false, e.code);
+      const d = e.code === "ENOENT" ? t("agentMissing", { bin, cmd: C.model }) : t("agentError", { error: e.message });
+      rec({ ev: "exit", code: e.code, stderr: e.message });
+      feed("error", d);
+      send({ t: "out", move: st.move, try: st.try, d });
+      send({ t: "done", move: st.move, try: st.try, lock: false });
     });
     st.proc = proc;
   }
@@ -918,5 +933,6 @@ ensureVscode().catch((e) => { console.error(e.message); process.exit(1); }).then
   const link = `http://127.0.0.1:${PORT}/ide?${cfg.auth.param}=${TOKEN}`;
   console.log(t("openOnce", { url: link }));
   if (fresh && cfg.auth.browser) spawn(cfg.auth.browser, [link], { detached: true, stdio: "ignore" }).on("error", () => {}).unref();
+  console.log(agentsLine());
   console.log(t("listen", { url: `http://127.0.0.1:${PORT}/ide`, cwd: ROOT, author: me.author, lang: me.lang, provider: cfg.default.provider, model: cfg.default.models[cfg.default.provider] }));
 }));
