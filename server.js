@@ -15,24 +15,44 @@ const dig = (o, p) => String(p || "").split(".").filter(Boolean).reduce((x, k) =
 const action = (name, o, keys) => { const k = (keys || []).find((k) => typeof dig(o, k) === "string"); return [name, k && dig(o, k)].filter(Boolean).join(" "); };
 
 const base = readJson(path.join(__dirname, "defaults.json")) || {};
+const LANGS = path.join(__dirname, "ext", "languages");
+const T0 = readJson(path.join(LANGS, base.language + ".json")) || {};
+const ROOT = process.argv[2] ? path.resolve(home(process.argv[2])) : null;
 const RUN = process.argv[3] ? path.resolve(home(process.argv[3])) : null;
-const CONF = RUN && path.join(RUN, base.config.file);
-const seeded = RUN && !fs.existsSync(CONF);
+if (!ROOT || !RUN || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) { console.error(fill(T0.noProjects, {})); process.exit(1); }
+const CONF = path.join(RUN, base.config.file);
+const seeded = !fs.existsSync(CONF);
 if (seeded) {
-  const seed = { port: base.port, author: os.userInfo().username, lang: base.language };
   fs.mkdirSync(RUN, { recursive: true });
-  fs.writeFileSync(CONF, JSON.stringify(Object.fromEntries(base.config.seed.map((k) => [k, seed[k]])), null, 2) + "\n");
+  fs.writeFileSync(CONF, JSON.stringify(Object.fromEntries(base.config.seed.map((k) => [k, base[k]])), null, 2) + "\n");
 }
-const user = (CONF && readJson(CONF)) || {};
+console.log(fill(T0[seeded ? "configCreated" : "configAt"], { file: CONF }));
+const askLine = (q) => {
+  process.stdout.write(q);
+  const b = Buffer.alloc(1), bytes = [];
+  while (fs.readSync(0, b, 0, 1) === 1 && b[0] !== 10) bytes.push(b[0]);
+  return Buffer.from(bytes).toString("utf8").trim();
+};
+const user = readJson(CONF) || {};
+const missing = base.config.ask.filter((k) => !user[k]);
+if (missing.length) {
+  if (!process.stdin.isTTY) { console.error(fill(T0.askNoTty, { file: CONF, keys: missing.join(", ") })); process.exit(1); }
+  const langs = fs.readdirSync(LANGS).filter((f) => f.endsWith(".json")).map((f) => path.basename(f, ".json"));
+  const def = { author: os.userInfo().username, lang: base.language };
+  const ok = { author: (v) => new RegExp(base.projectName).test(v), lang: (v) => langs.includes(v) };
+  for (const k of missing) {
+    let v;
+    do v = askLine(fill(T0["ask_" + k], { def: def[k], langs: langs.join(", ") })) || def[k]; while (!ok[k](v));
+    user[k] = v;
+  }
+  fs.writeFileSync(CONF, JSON.stringify(user, null, 2) + "\n");
+}
 const cfg = merge(base, user);
-const me = merge({ author: os.userInfo().username, lang: cfg.language, hints: cfg.hints }, user);
+const me = merge({ author: user.author, lang: user.lang, hints: cfg.hints }, user);
 const PORT = Number(cfg.port);
 const langOf = (dir) => merge(readJson(path.join(dir, cfg.language + ".json")) || {}, readJson(path.join(dir, me.lang + ".json")) || {});
-const T = langOf(path.join(__dirname, "ext", "languages"));
+const T = langOf(LANGS);
 const t = (k, v = {}) => fill(T[k] || k, v);
-const ROOT = process.argv[2] ? path.resolve(home(process.argv[2])) : null;
-if (!ROOT || !RUN || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) { console.error(t("noProjects")); process.exit(1); }
-console.log(t(seeded ? "configCreated" : "configAt", { file: CONF }));
 const inRun = (p) => path.resolve(RUN, home(p));
 const FLOWS = inRun(cfg.flows);
 const TOKEN_FILE = inRun(cfg.auth.token);

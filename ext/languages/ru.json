@@ -140,5 +140,8 @@
   "vscodeDigest": "ife: архив VS Code {url} повреждён: контрольная сумма не совпала",
   "vscodeBroken": "ife: архив VS Code {url} неполный",
   "configCreated": "ife: конфиг {file} (создан)",
-  "configAt": "ife: конфиг {file}"
+  "configAt": "ife: конфиг {file}",
+  "askNoTty": "ife: спросить негде, нет терминала: впиши {keys} в {file}",
+  "ask_author": "Твоё имя, им подписываются твои чаты и задачи в проектах [{def}]: ",
+  "ask_lang": "Язык ({langs}) [{def}]: "
 }

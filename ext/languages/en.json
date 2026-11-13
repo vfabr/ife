@@ -140,5 +140,8 @@
   "vscodeDigest": "ife: VS Code archive {url} is damaged: checksum mismatch",
   "vscodeBroken": "ife: VS Code archive {url} is incomplete",
   "configCreated": "ife: config {file} (created)",
-  "configAt": "ife: config {file}"
+  "configAt": "ife: config {file}",
+  "askNoTty": "ife: there is no terminal to ask in: put {keys} into {file}",
+  "ask_author": "Your name, used for your chats and tasks in projects [{def}]: ",
+  "ask_lang": "Language ({langs}) [{def}]: "
 }

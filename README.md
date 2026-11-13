@@ -33,7 +33,8 @@ node server.js ~/ife-projects ~/ife-run
 ```
 
 The first argument is the folder with projects. The second is the run folder: ife keeps there
-everything that is not code. On the first run ife creates `config.json` in it, downloads VS Code
+everything that is not code. On the first run ife creates `config.json` in it, asks your name
+and language in the terminal if they are not there yet, downloads VS Code
 for the web (about 37 MB) and prints a one-time link with an access token. Open it in a browser;
 after that `http://127.0.0.1:7777/ide` is enough.
 

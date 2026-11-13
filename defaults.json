@@ -3,7 +3,8 @@
   "language": "en",
   "config": {
     "file": "config.json",
-    "seed": ["port", "author", "lang"]
+    "seed": ["port"],
+    "ask": ["author", "lang"]
   },
   "hints": true,
   "auth": {
