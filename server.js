@@ -14,17 +14,28 @@ const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] 
 const dig = (o, p) => String(p || "").split(".").filter(Boolean).reduce((x, k) => (x == null ? x : x[k]), o);
 const action = (name, o, keys) => { const k = (keys || []).find((k) => typeof dig(o, k) === "string"); return [name, k && dig(o, k)].filter(Boolean).join(" "); };
 
-const cfg = readJson(path.join(__dirname, "defaults.json")) || {};
-const PERSONAL = home(cfg.personal);
-const me = merge({ author: os.userInfo().username, lang: cfg.language, hints: cfg.hints }, readJson(PERSONAL) || {});
-const PORT = Number(process.env.IFE_PORT || cfg.port);
+const base = readJson(path.join(__dirname, "defaults.json")) || {};
+const RUN = process.argv[3] ? path.resolve(home(process.argv[3])) : null;
+const CONF = RUN && path.join(RUN, base.config.file);
+const seeded = RUN && !fs.existsSync(CONF);
+if (seeded) {
+  const seed = { port: base.port, author: os.userInfo().username, lang: base.language };
+  fs.mkdirSync(RUN, { recursive: true });
+  fs.writeFileSync(CONF, JSON.stringify(Object.fromEntries(base.config.seed.map((k) => [k, seed[k]])), null, 2) + "\n");
+}
+const user = (CONF && readJson(CONF)) || {};
+const cfg = merge(base, user);
+const me = merge({ author: os.userInfo().username, lang: cfg.language, hints: cfg.hints }, user);
+const PORT = Number(cfg.port);
 const langOf = (dir) => merge(readJson(path.join(dir, cfg.language + ".json")) || {}, readJson(path.join(dir, me.lang + ".json")) || {});
 const T = langOf(path.join(__dirname, "ext", "languages"));
 const t = (k, v = {}) => fill(T[k] || k, v);
 const ROOT = process.argv[2] ? path.resolve(home(process.argv[2])) : null;
-if (!ROOT || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) { console.error(t("noProjects")); process.exit(1); }
-const FLOWS = home(cfg.flows);
-const TOKEN_FILE = home(cfg.auth.token);
+if (!ROOT || !RUN || !fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) { console.error(t("noProjects")); process.exit(1); }
+console.log(t(seeded ? "configCreated" : "configAt", { file: CONF }));
+const inRun = (p) => path.resolve(RUN, home(p));
+const FLOWS = inRun(cfg.flows);
+const TOKEN_FILE = inRun(cfg.auth.token);
 const queue = new Map(), qkey = (e) => [e.project, e.work, e.iteration, e.author, e.n].join("/");
 const tail = (d) => { const s = String(d || "").trim(); return s.length > cfg.feed.detail ? "…" + s.slice(-cfg.feed.detail) : s; };
 function rebuild() {
@@ -123,7 +134,7 @@ async function fetchTo(url, digest, target, marker, texts) {
   if (!fs.existsSync(path.join(target, marker))) { fs.rmSync(target, { recursive: true }); throw new Error(t(texts.broken, { url })); }
 }
 const download = (f) => fetchTo(f.url, f.digest, path.join(FLOWS, f.name, f.version), cfg.flowFile, { digest: "flowDigest", broken: "flowBroken" });
-const VSCODE = home(fill(cfg.vscode.dir, { version: cfg.vscode.version }));
+const VSCODE = inRun(fill(cfg.vscode.dir, { version: cfg.vscode.version }));
 async function ensureVscode() {
   if (fs.existsSync(path.join(VSCODE, cfg.vscode.marker))) return;
   console.log(t("vscodeLoading", { version: cfg.vscode.version }));
@@ -153,7 +164,7 @@ const workLight = (Q, w, at) => {
   return near.some((x) => x.busy) ? "busy" : near.some((x) => x.light === "error") ? "error" : lightsOf(w)[s.status] || lightsOf(w).default;
 };
 const scratchDir = (v) => {
-  const root = fill(cfg.scratch.root, { tmp: os.tmpdir(), uid: process.getuid() });
+  const root = inRun(cfg.scratch.root);
   if (!fs.existsSync(root)) fs.mkdirSync(root, { recursive: true, mode: 0o700 });
   const s = fs.lstatSync(root);
   if (s.isSymbolicLink() || !s.isDirectory() || s.uid !== process.getuid() || (s.mode & 0o077)) throw new Error(t("scratchUnsafe", { dir: root }));
@@ -355,7 +366,7 @@ const server = http.createServer((req, res) => {
   if (p.startsWith("/fs/")) return fsApi(req, res, p.slice(4), url.searchParams).catch((e) => { res.writeHead(500); res.end(String(e)); });
   if (p === "/lang") {
     const name = url.searchParams.get("project"), P = name && projects().includes(name) ? project(name) : null;
-    return json(res, { tool: T, author: me.author, icons: icons(), ui: cfg.ui, auth: `${cfg.auth.param}=${TOKEN}`, flows: cfg.flows, projectName: cfg.projectName, iterationName: cfg.iterationName,
+    return json(res, { tool: T, author: me.author, icons: icons(), ui: cfg.ui, auth: `${cfg.auth.param}=${TOKEN}`, flows: FLOWS, projectName: cfg.projectName, iterationName: cfg.iterationName,
       commands: { ...cfg.commands, ...(P ? P.flow.commands : {}) }, ...(P ? { flow: P.FT, stages: P.flow.stages, offStage: P.flow.offStage, flowTag: `${P.flow.name} ${P.flow.version}` } : {}) });
   }
   if (p === "/flows") return remoteFlows().then((rl) => {
@@ -867,8 +878,7 @@ wss.on("connection", (ws) => {
     if (msg.t === "open") open(msg.chat);
     else if (msg.t === "hints") {
       me.hints = !!msg.on;
-      fs.mkdirSync(path.dirname(PERSONAL), { recursive: true });
-      fs.writeFileSync(PERSONAL, JSON.stringify({ ...(readJson(PERSONAL) || {}), hints: me.hints }, null, 2) + "\n");
+      fs.writeFileSync(CONF, JSON.stringify({ ...(readJson(CONF) || {}), hints: me.hints }, null, 2) + "\n");
     }
     else if (msg.t === "cmd") { try { session(msg.chat).note(String(msg.d)); } catch (e) { ws.send(JSON.stringify({ chat: msg.chat, t: "sys", d: e.message })); } }
     else if (msg.t === "stop") { try { session(msg.chat).stop(); } catch (e) { ws.send(JSON.stringify({ chat: msg.chat, t: "sys", d: e.message })); } }

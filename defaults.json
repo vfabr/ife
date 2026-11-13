@@ -1,10 +1,13 @@
 {
   "port": 7777,
   "language": "en",
-  "personal": "~/.config/ife.json",
+  "config": {
+    "file": "config.json",
+    "seed": ["port", "author", "lang"]
+  },
   "hints": true,
   "auth": {
-    "token": "~/.ife/token",
+    "token": "token",
     "bytes": 24,
     "param": "tkn",
     "cookie": "ife-{port}",
@@ -16,7 +19,7 @@
     ],
     "browser": "xdg-open"
   },
-  "flows": "~/.ife/flows",
+  "flows": "flows",
   "feed": {
     "waits": ["ready", "confirmed", "refuted"],
     "lastWho": ["agent", "sys"],
@@ -294,14 +297,14 @@
     "closed"
   ],
   "scratch": {
-    "root": "{tmp}/ife-{uid}",
+    "root": "scratch",
     "dir": "{project}/{iteration}-{stage}-{n}"
   },
   "vscode": {
     "version": "1.145.2",
     "url": "https://github.com/vfabr/ife/releases/download/vscode-{version}/vscode-web-{version}.tar.gz",
     "digest": "sha256:b688678def5849a6655013e3cf45d6e5872d9390cbf280bcbadc1e0779841614",
-    "dir": "~/.ife/vscode/{version}",
+    "dir": "vscode/{version}",
     "marker": "package.json",
     "exclude": [
       "mermaid-markdown-features"

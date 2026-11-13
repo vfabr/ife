@@ -48,7 +48,7 @@
   "openOnce": "ife: открой один раз {url}",
   "noAccess": "ife: нет доступа, открой ссылку из консоли сервера",
   "offStage": "оффтоп",
-  "noProjects": "ife: укажи папку с проектами: node server.js <папка>",
+  "noProjects": "ife: укажи папку с проектами и папку запуска: node server.js <проекты> <папка запуска>",
   "flowLocked": "flow проекта только для чтения",
   "projectBad": "ife: нельзя создать проект {name}: имя занято, недопустимо или flow не найден",
   "noFlows": "ife: нет установленных flow в {dir}",
@@ -138,5 +138,7 @@
   "feed_waiting": "ждёт тебя",
   "vscodeLoading": "ife: скачиваю VS Code {version}, это делается один раз",
   "vscodeDigest": "ife: архив VS Code {url} повреждён: контрольная сумма не совпала",
-  "vscodeBroken": "ife: архив VS Code {url} неполный"
+  "vscodeBroken": "ife: архив VS Code {url} неполный",
+  "configCreated": "ife: конфиг {file} (создан)",
+  "configAt": "ife: конфиг {file}"
 }

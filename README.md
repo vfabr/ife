@@ -29,23 +29,29 @@ npm install
 
 ```sh
 mkdir -p ~/ife-projects
-node server.js ~/ife-projects
+node server.js ~/ife-projects ~/ife-run
 ```
 
-On the first run ife downloads VS Code for the web (about 37 MB) into `~/.ife/vscode`.
-The server then prints a one-time link with an access token. Open it in a browser; after that
-`http://127.0.0.1:7777/ide` is enough. The port is set with `IFE_PORT`.
+The first argument is the folder with projects. The second is the run folder: ife keeps there
+everything that is not code. On the first run ife creates `config.json` in it, downloads VS Code
+for the web (about 37 MB) and prints a one-time link with an access token. Open it in a browser;
+after that `http://127.0.0.1:7777/ide` is enough.
 
 In the ife sidebar create a project and pick a flow. Flows are downloaded from the
-[flows releases](https://github.com/vfabr/flows/releases) and kept in `~/.ife/flows`.
+[flows releases](https://github.com/vfabr/flows/releases) into the run folder.
+
+Several copies of ife can run side by side, each with its own run folder and port.
 
 ## Files
 
 | Path | What it is |
 | --- | --- |
-| `defaults.json` | all settings of ife, including the VS Code version |
-| `~/.ife/vscode/` | VS Code for the web, downloaded on the first run |
-| `~/.config/ife.json` | personal settings: author name, language, models |
+| `defaults.json` | all settings of ife with their default values |
+| `<run>/config.json` | settings of this run: port, author, language and any key of `defaults.json` |
+| `<run>/token` | access token |
+| `<run>/flows/` | downloaded flows |
+| `<run>/vscode/` | VS Code for the web |
+| `<run>/scratch/` | temporary folders of experiments |
 | `<project>/ife.json` | project settings and the pinned flow version |
 | `<project>/flow/` | read-only copy of the project's flow |
 

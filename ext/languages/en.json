@@ -48,7 +48,7 @@
   "openOnce": "ife: open once {url}",
   "noAccess": "ife: no access, open the link from the server console",
   "offStage": "offtop",
-  "noProjects": "ife: give the projects folder: node server.js <folder>",
+  "noProjects": "ife: give the projects folder and the run folder: node server.js <projects> <run>",
   "flowLocked": "the project flow is read only",
   "projectBad": "ife: cannot create project {name}: name taken, invalid or flow not found",
   "noFlows": "ife: no flows installed in {dir}",
@@ -138,5 +138,7 @@
   "feed_waiting": "waiting for you",
   "vscodeLoading": "ife: downloading VS Code {version}, this happens once",
   "vscodeDigest": "ife: VS Code archive {url} is damaged: checksum mismatch",
-  "vscodeBroken": "ife: VS Code archive {url} is incomplete"
+  "vscodeBroken": "ife: VS Code archive {url} is incomplete",
+  "configCreated": "ife: config {file} (created)",
+  "configAt": "ife: config {file}"
 }
