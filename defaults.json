@@ -359,7 +359,7 @@
     "targets": [
       {
         "name": "linux-x64",
-        "runner": "ubuntu-latest",
+        "runner": "ubuntu-22.04",
         "node": "linux-x64"
       },
       {
